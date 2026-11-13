@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: payment-gateway
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/gateway
+    username: gateway
+    password: gateway
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080 
+bank:
+  base-url: http://localhost:8787
