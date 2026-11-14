@@ -1,10 +1,10 @@
-package com.kindness.gateway.payement_gateway;
+package com.kindness.gateway.payment_gateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class PayementGatewayApplicationTests {
+class PaymentGatewayApplicationTests {
 
 	@Test
 	void contextLoads() {
