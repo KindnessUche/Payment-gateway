@@ -21,3 +21,4 @@ server:
   port: 8081
 bank:
   base-url: http://localhost:8787
+  timeout-seconds: 5
