@@ -27,7 +27,10 @@ class BankClientTest {
     void setUp() {
         wireMock = new WireMockServer(options().dynamicPort());
         wireMock.start();
-        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(HttpClient.newHttpClient());
+        HttpClient httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofMillis(500));
 
         RestClient restClient = RestClient.builder()
@@ -88,6 +91,6 @@ class BankClientTest {
 
         assertThatThrownBy(() -> client.authorize(request, "authorize-123"))
                 .isInstanceOf(BankTransientException.class)
-                .hasCauseInstanceOf(org.springframework.web.client.ResourceAccessException.class);
+                .hasCauseInstanceOf(org.springframework.web.client.ResourceAccessException.class).hasRootCauseInstanceOf(java.net.http.HttpTimeoutException.class);
     }
 }
