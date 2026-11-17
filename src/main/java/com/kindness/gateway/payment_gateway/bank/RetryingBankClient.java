@@ -31,6 +31,22 @@ public class RetryingBankClient {
         }
         throw lastFailure;
     }
+    public BankCaptureResponse capture(BankCaptureRequest request,
+                                 String idempotencyKey) {
+        BankTransientException lastFailure = null;
+
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                return bankClient.capture(request, idempotencyKey);
+            } catch (BankTransientException e) {
+                lastFailure = e;
+                if (attempt < MAX_ATTEMPTS) {
+                    sleep(delayFor(attempt));
+                }
+            }
+        }
+        throw lastFailure;
+    }
 
 
     private long delayFor(int attempt) {

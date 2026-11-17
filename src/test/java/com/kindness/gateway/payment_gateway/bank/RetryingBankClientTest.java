@@ -24,6 +24,13 @@ class RetryingBankClientTest {
     private final BankAuthorizeRequest request =
             new BankAuthorizeRequest("4111111111111111", "123", 12, 2030, 1000);
 
+    private final BankCaptureRequest captureRequest =
+            new BankCaptureRequest("auth-1", 1000);
+
+    private static final String CAPTURE_OK =
+            "{\"capture_id\":\"cap-1\",\"authorization_id\":\"auth-1\","
+                    + "\"amount\":1000,\"captured_at\":\"2026-11-17T11:49:52.991Z\"}";
+
     @BeforeEach
     void setUp() {
         wireMock = new WireMockServer(options().dynamicPort());
@@ -93,5 +100,39 @@ class RetryingBankClientTest {
                 .isInstanceOf(BankTransientException.class);
 
         wireMock.verify(3, postRequestedFor(urlEqualTo("/api/v1/authorizations")));
+    }
+
+    @Test
+    void captureDoesNotRetryPermanentFailure() {
+        wireMock.stubFor(post(urlEqualTo("/api/v1/captures"))
+                .willReturn(aResponse().withStatus(400)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"error\":\"authorization_already_used\",\"message\":\"Already used\"}")));
+
+        assertThatThrownBy(() -> client.capture(captureRequest, "capture-123"))
+                .isInstanceOfSatisfying(BankPermanentException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo("authorization_already_used"));
+
+        wireMock.verify(1, postRequestedFor(urlEqualTo("/api/v1/captures")));
+    }
+
+    @Test
+    void captureRetriesTransientFailureWithSameKey() {
+        wireMock.stubFor(post(urlEqualTo("/api/v1/captures"))
+                .inScenario("capture-retry").whenScenarioStateIs(STARTED)
+                .willReturn(aResponse().withStatus(500)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"error\":\"internal_error\"}"))
+                .willSetStateTo("second"));
+
+        wireMock.stubFor(post(urlEqualTo("/api/v1/captures"))
+                .inScenario("capture-retry").whenScenarioStateIs("second")
+                .willReturn(okJson(CAPTURE_OK)));
+
+        BankCaptureResponse response = client.capture(captureRequest, "capture-123");
+
+        assertThat(response.captureId()).isEqualTo("cap-1");
+        wireMock.verify(2, postRequestedFor(urlEqualTo("/api/v1/captures"))
+                .withHeader("Idempotency-Key", equalTo("capture-123")));
     }
 }
