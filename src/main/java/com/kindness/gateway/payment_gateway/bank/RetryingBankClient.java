@@ -1,6 +1,7 @@
 package com.kindness.gateway.payment_gateway.bank;
 
 import org.springframework.stereotype.Component;
+import java.util.function.Supplier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -16,12 +17,13 @@ public class RetryingBankClient {
         this.bankClient = bankClient;
     }
 
-    public BankAuthorizeResponse authorize(BankAuthorizeRequest request, String idempotencyKey) {
+
+    private <Res> Res retry(Supplier<Res> call) {
         BankTransientException lastFailure = null;
 
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
-                return bankClient.authorize(request, idempotencyKey);
+                return call.get();
             } catch (BankTransientException e) {
                 lastFailure = e;
                 if (attempt < MAX_ATTEMPTS) {
@@ -31,22 +33,23 @@ public class RetryingBankClient {
         }
         throw lastFailure;
     }
-    public BankCaptureResponse capture(BankCaptureRequest request,
-                                 String idempotencyKey) {
-        BankTransientException lastFailure = null;
 
-        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-            try {
-                return bankClient.capture(request, idempotencyKey);
-            } catch (BankTransientException e) {
-                lastFailure = e;
-                if (attempt < MAX_ATTEMPTS) {
-                    sleep(delayFor(attempt));
-                }
-            }
-        }
-        throw lastFailure;
+    public BankAuthorizeResponse authorize(BankAuthorizeRequest request, String key) {
+        return retry(() -> bankClient.authorize(request, key));
     }
+
+    public BankCaptureResponse capture(BankCaptureRequest request, String key) {
+        return retry(() -> bankClient.capture(request, key));
+    }
+
+    public BankVoidResponse voidAuthorization(BankVoidRequest request, String key) {
+        return retry(() -> bankClient.voidAuthorization(request, key));
+    }
+
+    public BankRefundResponse refund(BankRefundRequest request, String key) {
+        return retry(() -> bankClient.refund(request, key));
+    }
+
 
 
     private long delayFor(int attempt) {
@@ -58,7 +61,7 @@ public class RetryingBankClient {
         try {
             Thread.sleep(ms);
         } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt(); // restore the flag, then stop waiting
+            Thread.currentThread().interrupt();
         }
     }
 }

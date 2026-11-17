@@ -15,17 +15,16 @@ public class BankClient {
         this.restClient = bankRestClient;
     }
 
-    public BankAuthorizeResponse authorize(BankAuthorizeRequest request, String idempotencyKey) {
+    private <Req, Res> Res post(String path, Req request, String idempotencyKey, Class<Res> responseType) {
         try {
             return restClient.post()
-                    .uri("/api/v1/authorizations")
+                    .uri(path)
                     .header("Idempotency-Key", idempotencyKey)
                     .body(request)
                     .retrieve()
-                    .body(BankAuthorizeResponse.class);
+                    .body(responseType);
 
         } catch (HttpClientErrorException e) {
-
             String code = "unknown_error";
             String message = e.getMessage();
             try {
@@ -47,37 +46,23 @@ public class BankClient {
             throw new BankTransientException("No response from bank (timeout or connection error)", e);
         }
     }
-    public BankCaptureResponse capture(BankCaptureRequest request,
-                              String idempotencyKey) {
-        try {
-            return restClient.post()
-                    .uri("/api/v1/captures")
-                    .header("Idempotency-Key", idempotencyKey)
-                    .body(request)
-                    .retrieve()
-                    .body(BankCaptureResponse.class);
 
-        } catch (HttpClientErrorException e) {
-
-            String code = "unknown_error";
-            String message = e.getMessage();
-            try {
-                BankErrorResponse err = e.getResponseBodyAs(BankErrorResponse.class);
-                if (err != null && err.error() != null) {
-                    code = err.error();
-                    if (err.message() != null) {
-                        message = err.message();
-                    }
-                }
-            } catch (Exception ignored) {
-            }
-            throw new BankPermanentException(e.getStatusCode().value(), code, message);
-
-        } catch (HttpServerErrorException e) {
-            throw new BankTransientException("Bank returned " + e.getStatusCode().value(), e);
-
-        } catch (ResourceAccessException e) {
-            throw new BankTransientException("No response from bank (timeout or connection error)", e);
-        }
+    public BankAuthorizeResponse authorize(BankAuthorizeRequest request,
+                                   String idempotencyKey) {
+        return post("/api/v1/authorizations", request, idempotencyKey,
+                BankAuthorizeResponse.class);
+    }
+    public BankCaptureResponse capture(BankCaptureRequest request, String idempotencyKey) {
+        return post("/api/v1/captures", request, idempotencyKey,
+                BankCaptureResponse.class);
+    }
+    public BankVoidResponse voidAuthorization(BankVoidRequest request,
+                                  String idempotencyKey) {
+        return post("/api/v1/voids", request, idempotencyKey,
+                BankVoidResponse.class);
+    }
+    public BankRefundResponse refund(BankRefundRequest request, String idempotencyKey) {
+        return post("/api/v1/refunds", request, idempotencyKey,
+                BankRefundResponse.class);
     }
 }
