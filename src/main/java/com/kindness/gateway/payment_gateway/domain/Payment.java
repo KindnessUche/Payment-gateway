@@ -84,6 +84,147 @@ public class Payment {
         this.updatedAt = Instant.now();
     }
 
-    // getters and setters: generate with IntelliJ (Alt+Insert)
+    public String getOrderId() {
+        return orderId;
+    }
 
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+
+    public long getAmountCents() {
+        return amountCents;
+    }
+
+    public void setAmountCents(long amountCents) {
+        this.amountCents = amountCents;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getCardLast4() {
+        return cardLast4;
+    }
+
+    public void setCardLast4(String cardLast4) {
+        this.cardLast4 = cardLast4;
+    }
+
+    public String getBankAuthorizationId() {
+        return bankAuthorizationId;
+    }
+
+    public void setBankAuthorizationId(String bankAuthorizationId) {
+        this.bankAuthorizationId = bankAuthorizationId;
+    }
+
+    public String getBankCaptureId() {
+        return bankCaptureId;
+    }
+
+    public void setBankCaptureId(String bankCaptureId) {
+        this.bankCaptureId = bankCaptureId;
+    }
+
+    public String getBankVoidId() {
+        return bankVoidId;
+    }
+
+    public void setBankVoidId(String bankVoidId) {
+        this.bankVoidId = bankVoidId;
+    }
+
+    public String getBankRefundId() {
+        return bankRefundId;
+    }
+
+    public void setBankRefundId(String bankRefundId) {
+        this.bankRefundId = bankRefundId;
+    }
+
+    public Instant getAuthorizationExpiresAt() {
+        return authorizationExpiresAt;
+    }
+
+    public void setAuthorizationExpiresAt(Instant authorizationExpiresAt) {
+        this.authorizationExpiresAt = authorizationExpiresAt;
+    }
+
+    public int getAttemptCount() {
+        return attemptCount;
+    }
+
+    public void setAttemptCount(int attemptCount) {
+        this.attemptCount = attemptCount;
+    }
+
+    public String getLastErrorCode() {
+        return lastErrorCode;
+    }
+
+    public void setLastErrorCode(String lastErrorCode) {
+        this.lastErrorCode = lastErrorCode;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Instant getAuthorizedAt() {
+        return authorizedAt;
+    }
+
+    public void setAuthorizedAt(Instant authorizedAt) {
+        this.authorizedAt = authorizedAt;
+    }
+
+    public Instant getCapturedAt() {
+        return capturedAt;
+    }
+
+    public void setCapturedAt(Instant capturedAt) {
+        this.capturedAt = capturedAt;
+    }
+
+    public Instant getVoidedAt() {
+        return voidedAt;
+    }
+
+    public void setVoidedAt(Instant voidedAt) {
+        this.voidedAt = voidedAt;
+    }
+
+    public Instant getRefundedAt() {
+        return refundedAt;
+    }
+
+    public void setRefundedAt(Instant refundedAt) {
+        this.refundedAt = refundedAt;
+    }
 }
