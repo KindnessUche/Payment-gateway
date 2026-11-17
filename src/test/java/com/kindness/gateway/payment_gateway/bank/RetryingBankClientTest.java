@@ -26,6 +26,10 @@ class RetryingBankClientTest {
 
     private final BankCaptureRequest captureRequest =
             new BankCaptureRequest("auth-1", 1000);
+    private final BankVoidRequest voidRequest =
+            new BankVoidRequest("auth-1");
+    private final BankRefundRequest refundRequest =
+            new BankRefundRequest("cap-1", 1000);
 
     private static final String CAPTURE_OK =
             "{\"capture_id\":\"cap-1\",\"authorization_id\":\"auth-1\","
@@ -134,5 +138,35 @@ class RetryingBankClientTest {
         assertThat(response.captureId()).isEqualTo("cap-1");
         wireMock.verify(2, postRequestedFor(urlEqualTo("/api/v1/captures"))
                 .withHeader("Idempotency-Key", equalTo("capture-123")));
+    }
+
+    @Test
+    void voidDoesNotRetryPermanentFailure() {
+        wireMock.stubFor(post(urlEqualTo("/api/v1/voids"))
+                .willReturn(aResponse().withStatus(400)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"error\":\"authorization_already_used\",\"message\":\"Already used\"}")));
+
+        assertThatThrownBy(() -> client.voidAuthorization(voidRequest, "void-123"))
+                .isInstanceOfSatisfying(BankPermanentException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo("authorization_already_used"));
+
+        wireMock.verify(1, postRequestedFor(urlEqualTo("/api/v1/voids")));
+    }
+
+    @Test
+    void refundDoesNotRetryPermanentFailure() {
+        wireMock.stubFor(post(urlEqualTo("/api/v1/refunds"))
+                .willReturn(aResponse().withStatus(400)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"error\":\"amount_mismatch\"," +
+                                "\"message\":\"Different Amounts used\"}")));
+
+        assertThatThrownBy(() -> client.refund(refundRequest, "refund-123"))
+                .isInstanceOfSatisfying(BankPermanentException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo(
+                                "amount_mismatch"));
+
+        wireMock.verify(1, postRequestedFor(urlEqualTo("/api/v1/refunds")));
     }
 }
