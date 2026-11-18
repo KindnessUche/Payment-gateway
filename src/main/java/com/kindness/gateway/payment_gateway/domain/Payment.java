@@ -112,16 +112,8 @@ public class Payment {
         return currency;
     }
 
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
     public String getCardLast4() {
         return cardLast4;
-    }
-
-    public void setCardLast4(String cardLast4) {
-        this.cardLast4 = cardLast4;
     }
 
     public String getBankAuthorizationId() {
@@ -226,5 +218,13 @@ public class Payment {
 
     public void setRefundedAt(Instant refundedAt) {
         this.refundedAt = refundedAt;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public PaymentState getState() {
+        return state;
     }
 }
